@@ -3,6 +3,7 @@ package org.apache.hadoop.BHW.physics;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.hadoop.BHW.Bottle;
 import org.apache.hadoop.BHW.Vec3D;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -57,7 +58,7 @@ public class ParticleSystem {
 	public static float calcDensityConstraint(Particle p, ArrayList<Particle> neighbors) {
 		float sum = 0f;
 		for (Particle n : neighbors) {
-			sum += n.getMass() * WPoly6(p.getNewPos(), n.getNewPos());
+			sum +=  WPoly6(p.getNewPos(), n.getNewPos());
 		}
 
 		return (sum / REST_DENSITY) - 1;
@@ -139,6 +140,19 @@ public class ParticleSystem {
 			eta.add(Vec3D.mul(WViscosity(p.getNewPos(), n.getNewPos()), vorticityMag));
 		}
 		return eta;
+	}
+	public static void imposeConstraints(Bottle bottle, Particle p) {
+		Vec3D pos = new Vec3D(p.getNewPos().x, p.getNewPos().y, bottle.center.z);
+		float dis = Vec3D.dis(pos, bottle.center);
+		if(dis>bottle.radius)
+		{
+			pos = Vec3D.add(bottle.center, 
+					Vec3D.mul(Vec3D.minus(pos, bottle.center), bottle.radius/dis)
+					);
+			pos.z = p.getNewPos().z;
+			p.setNewPos(pos);
+			p.setVelocity(Vec3D.div(Vec3D.minus(pos, p.getOldPos()), deltaT));
+		}		
 	}
 
 }

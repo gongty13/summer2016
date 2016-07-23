@@ -3,10 +3,16 @@ package org.apache.hadoop.BHW.physics;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.xml.transform.OutputKeys;
+
+import org.apache.hadoop.BHW.Bottle;
 import org.apache.hadoop.BHW.Vec3D;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+
+import com.sun.org.apache.bcel.internal.generic.NEW;
 
 public class FrameIterator {
 	public static class FrameIteratorMapper extends Mapper<Object, Text, Text, Text>
@@ -30,21 +36,25 @@ public class FrameIterator {
 	}
 	public static class FrameIteratorReducer extends Reducer<Text, Text, Text, Text>
 	{
+		public Bottle bottle;
 		@Override
 		protected void setup(Context context)
 				throws IOException, InterruptedException {
-			// TODO Auto-generated method stub
 			super.setup(context);
+			Configuration conf = context.getConfiguration();
+			bottle = new Bottle(conf.get(Frame.BottlePathTag));
+			bottle.run(Float.parseFloat(conf.get(Frame.BottleAccelerationTag)));			
 		}
 		@Override
 		protected void cleanup(Context context)
 				throws IOException, InterruptedException {
 			super.cleanup(context);
 		}
+		private Text outKey = new Text("");
+		private Text outVal = new Text("");
 		@Override
 		protected void reduce(Text key, Iterable<Text> value, Context context)
 				throws IOException, InterruptedException {
-			// TODO Auto-generated method stub
 			ArrayList<Particle> particles = new ArrayList<Particle>();
 			ArrayList<Particle> centers = new ArrayList<Particle>();
 			for(Text val:value){
@@ -86,15 +96,22 @@ public class FrameIterator {
 			}
 			if(context.getConfiguration().getBoolean("final", false))
 			{
-				for(Particle p:centers){// set new velocity vi = (x*i - xi) /(deltaT) 
+				for(Particle p:centers){
+					ParticleSystem.imposeConstraints(bottle, p);
+					// set new velocity vi = (x*i - xi) /(deltaT) 
 					p.setVelocity(Vec3D.div(Vec3D.minus(p.getNewPos(), p.getOldPos()), ParticleSystem.deltaT));
 					// apply vorticity confinement
 					p.getVelocity().add( Vec3D.mul(ParticleSystem.vorticityForce(p), ParticleSystem.deltaT));
 					// apply XSPH viscosity
-					//p.getVelocity().add(xsphViscosity(p));
+					//p.getVelocity().add(xsphViscosity(p));TODO
 					// update position xi = x*i
 					p.setOldPos(p.getNewPos());
 				}
+			}
+			outKey.set("");
+			for(Particle p:centers){
+				outVal.set(p.toString());
+				context.write(outKey, outVal);	
 			}
 		}
 	}

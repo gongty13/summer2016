@@ -12,11 +12,10 @@ public class Particle {
 	private Vec3D velocity;
 	private Vec3D force;
 	private Vec3D deltaP;
-	private float mass;
 	private float lambda;
-	private float pConstraint;
+//	private float pConstraint;
 	private ArrayList<Particle> neighbors;
-	private Cell cell;
+//	private Cell cell;
 	public Particle(String str)
 	{
 		String[] items = str.split("\\s+");
@@ -26,25 +25,27 @@ public class Particle {
 			String[] s = item.split(":");
 			map.put(s[0], s[1]);
 		}
-		oldPos = new Vec3D(map.get("pos"));
-		newPos = new Vec3D(0,0,0);
+		oldPos = new Vec3D(map.get("p"));
+		lambda = map.containsKey("l")?Float.parseFloat(map.get("l")):0f;
+		newPos =map.containsKey("n")?new Vec3D(map.get("n")): new Vec3D(0f, 0f, 0f);
 		velocity = map.containsKey("v")?new Vec3D(map.get("v")):new Vec3D(0f, 0f, 0f);
 		force =  map.containsKey("f")?new Vec3D(map.get("f")):new Vec3D(0f, 0f, 0f);
-		deltaP = map.containsKey("dP")?new Vec3D(map.get("dP")): new Vec3D(0f, 0f, 0f);
-		mass = 1f;	
+		deltaP = map.containsKey("d")?new Vec3D(map.get("d")): new Vec3D(0f, 0f, 0f);
+		neighbors = new ArrayList<Particle>();
 	}
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("");
-		sb.append("pos:"+newPos.toString());
-		sb.append("v:"+velocity.toString());
-		sb.append("f:"+force.toString());
-		sb.append("dP:"+deltaP.toString());
+		sb.append("p:"+oldPos.toString());
+		sb.append("\tn:"+newPos.toString());
+		sb.append("\tl:"+lambda);
+		sb.append("\tv:"+velocity.toString());
+		sb.append("\tf:"+force.toString());
+		sb.append("\td:"+deltaP.toString());
 		return sb.toString();
 	}
-	public Particle(Vec3D pos, float mass) {
+	public Particle(Vec3D pos) {
 		this.oldPos = pos;
-		this.mass = mass;
 		newPos = new Vec3D(0f, 0f, 0f);
 		velocity = new Vec3D(0f, 0f, 0f);
 		force = new Vec3D(0f, 0f, 0f);
@@ -78,10 +79,6 @@ public class Particle {
 		force.z = z;
 	}
 
-	public float getMass() {
-		return mass;
-	}
-
 	public ArrayList<Particle> getNeighbors() {
 		return neighbors;
 	}
@@ -90,13 +87,13 @@ public class Particle {
 		this.neighbors = neighbors;
 	}
 
-	public float getPConstraint() {
-		return pConstraint;
-	}
-
-	public void setPConstraint(float f) {
-		pConstraint = f;
-	}
+//	public float getPConstraint() {
+//		return pConstraint;
+//	}
+//
+//	public void setPConstraint(float f) {
+//		pConstraint = f;
+//	}
 
 	public void setNewPos(Vec3D v) {
 		newPos = v;
@@ -120,13 +117,5 @@ public class Particle {
 
 	public void setLambda(float lambda) {
 		this.lambda = lambda;
-	}
-
-	public Cell getCell() {
-		return cell;
-	}
-
-	public void setCell(Cell cell) {
-		this.cell = cell;
 	}
 }

@@ -3,7 +3,9 @@ package org.apache.hadoop.BHW.physics;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.hadoop.BHW.Bottle;
 import org.apache.hadoop.BHW.Vec3D;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -11,11 +13,14 @@ import org.apache.hadoop.mapreduce.Reducer;
 public class FrameStart {
 	public static class FrameStartMapper extends Mapper<Object, Text, Object, Object>
 	{
+		public Bottle bottle;
 		@Override
 		public void setup(Context context)
 				throws IOException, InterruptedException {
-			// TODO Auto-generated method stub
 			super.setup(context);
+			Configuration conf = context.getConfiguration();
+			bottle = new Bottle(conf.get(Frame.BottlePathTag));
+			bottle.run(Float.parseFloat(conf.get(Frame.BottleAccelerationTag)));			
 		}
 		private Text outKey = new Text();
 		private Text outVal = new Text();
@@ -28,7 +33,7 @@ public class FrameStart {
 			p.setNewPos(p.getOldPos().clone());
 			p.getVelocity().add(Vec3D.mul(ParticleSystem.deltaT,p.getForce()));
 			p.getNewPos().add(Vec3D.mul(ParticleSystem.deltaT,p.getVelocity()));
-			//TODO if p get out of  the bottle
+			ParticleSystem.imposeConstraints(bottle, p);
 			outKey.set("");
 			outVal.set(p.toString());
 			context.write(outKey, outVal);
