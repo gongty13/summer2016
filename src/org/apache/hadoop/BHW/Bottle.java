@@ -13,7 +13,8 @@ public class Bottle {
 		for(String item:items)
 		{
 			String[] s = item.split(":");
-			map.put(s[0], s[1]);
+			if(s.length==2)
+				map.put(s[0], s[1]);
 		}
 		radius = map.containsKey("r")?Float.parseFloat(map.get("r")):100;
 		center = map.containsKey("c")?new Vec3D(map.get("c")):new Vec3D();
@@ -28,8 +29,8 @@ public class Bottle {
 	public String toString() {
 		StringBuilder sb = new StringBuilder("");
 		sb.append("r:"+radius);
-		sb.append("\tc:"+center.toString());
+		sb.append("\tc:"+center.x);
 		sb.append("\tv:"+velocity.x);
-		return "";
+		return sb.toString();
 	}
 }

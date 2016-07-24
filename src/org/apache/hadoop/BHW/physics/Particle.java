@@ -23,7 +23,8 @@ public class Particle {
 		for(String item:items)
 		{
 			String[] s = item.split(":");
-			map.put(s[0], s[1]);
+			if(s.length==2)
+				map.put(s[0], s[1]);
 		}
 		oldPos = new Vec3D(map.get("p"));
 		lambda = map.containsKey("l")?Float.parseFloat(map.get("l")):0f;

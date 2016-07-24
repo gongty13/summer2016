@@ -14,7 +14,7 @@ public class ParticleSystem {
 	//Number of iterations to update pressure constraints (Macklin et al. used 4)
 	public static final int PRESSURE_ITERATIONS = 6;
 	// deltaT is the timestep
-	public static float deltaT = 0.005f;
+	public static float deltaT = 0.05f;
 	// H is radius of influence
 	// KPOLY and SPIKY are constant coefficients used in Density Estimation
 	// Kernels

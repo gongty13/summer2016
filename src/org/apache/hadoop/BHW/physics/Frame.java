@@ -5,6 +5,7 @@ import org.apache.hadoop.BHW.physics.FrameIterator.FrameIteratorReducer;
 import org.apache.hadoop.BHW.physics.FrameStart.FrameStartMapper;
 import org.apache.hadoop.BHW.physics.FrameStart.FrameStartReducer;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -40,20 +41,17 @@ public class Frame {
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));
 		job.waitForCompletion(true);		
 	}
-	public static void main(String[] args)throws Exception
+	public static void run(String bottlePath, float bottleAcceleration, String in, String out)throws Exception
 	{
 		Configuration conf = new Configuration();
-		String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-		if (otherArgs.length < 2) {
-			System.err.println("Usage: Frame <bottlePath> <bottleAcceleration> <in> <out>");
-			System.exit(2);
-		}
-		conf.set(BottlePathTag, otherArgs[0]);
-		conf.set(BottleAccelerationTag, otherArgs[1]);
-		runInit(otherArgs[2], otherArgs[3]+0, conf);
+		conf.set(BottlePathTag, bottlePath);
+		conf.setFloat(BottleAccelerationTag, bottleAcceleration);
+		runInit(in, out+"_"+0, conf);
 		for(int i=0;i<ParticleSystem.PRESSURE_ITERATIONS;++i){
-			runIterator(otherArgs[3]+i, otherArgs[3]+(i+1), conf);
+			runIterator(out+"_"+i, out+"_"+(i+1), conf);
 		}
-		//run Render
+		FileSystem fs = FileSystem.get(conf);
+		fs.rename(new Path(out+"_"+ParticleSystem.PRESSURE_ITERATIONS), new Path(out));
+		//run Render TODO
 	}
 }
