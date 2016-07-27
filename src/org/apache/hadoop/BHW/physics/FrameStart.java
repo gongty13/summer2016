@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import org.apache.hadoop.BHW.Bottle;
 import org.apache.hadoop.BHW.Vec3D;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -19,8 +22,11 @@ public class FrameStart {
 				throws IOException, InterruptedException {
 			super.setup(context);
 			Configuration conf = context.getConfiguration();
-			bottle = new Bottle(conf.get(Frame.BottlePathTag));
-			bottle.run(Float.parseFloat(conf.get(Frame.BottleAccelerationTag)));			
+			FileSystem fs = FileSystem.get(conf);
+			FSDataInputStream dis = fs.open(new Path(conf.get(Frame.BottlePathTag)));
+			bottle = new Bottle(dis.readLine());
+			bottle.run(Float.parseFloat(conf.get(Frame.BottleAccelerationTag)));
+			dis.close();
 		}
 		private Text outKey = new Text();
 		private Text outVal = new Text();
@@ -31,8 +37,8 @@ public class FrameStart {
 			p.setForce(0, 0, 0);
 			p.getForce().add(ParticleSystem.GRAVITY);
 			p.setNewPos(p.getOldPos().clone());
-			p.getVelocity().add(Vec3D.mul(ParticleSystem.deltaT,p.getForce()));
-			p.getNewPos().add(Vec3D.mul(ParticleSystem.deltaT,p.getVelocity()));
+			p.getVelocity().add(Vec3D.mul(ParticleSystem.deltaT, p.getForce()));
+			p.getNewPos().add(Vec3D.mul(ParticleSystem.deltaT, p.getVelocity()));
 			ParticleSystem.imposeConstraints(bottle, p);
 			outKey.set("");
 			outVal.set(p.toString());

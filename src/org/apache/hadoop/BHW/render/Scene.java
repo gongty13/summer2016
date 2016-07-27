@@ -1,23 +1,17 @@
 package org.apache.hadoop.BHW.render;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hadoop.BHW.Vec3D;
 import org.apache.hadoop.BHW.Vec3D.Ray;
-import org.apache.hadoop.BHW.render.Scene.ObjectInScene;
-
-import com.sun.xml.bind.v2.model.core.ID;
-
-
 
 public class Scene {
 	public Camera camera;
 	public Vec3D environment = new Vec3D(0,0,0);
-	public Collection<Light> lights =  new ArrayList<Light>();
-	public Collection<ObjectInScene> objs =  new ArrayList<ObjectInScene>();
+	public ArrayList<Light> lights =  new ArrayList<Light>();
+	public ArrayList<ObjectInScene> objs =  new ArrayList<ObjectInScene>();
 	public void parse(String line)
 	{
 		String[] strs = line.split("\\s+");
@@ -32,21 +26,24 @@ public class Scene {
 			camera = new Camera(map);
 		}else if (strs[0].equals("ParallelLight")){
 			lights.add(new ParallelLight(map));
-		}else if (strs[0].equals("Ball")){
-			objs.add(new Ball(map));
-		}else if (strs[0].equals("Plane")){
-			objs.add(new Plane(map));
 		}
+		else if(strs[0].equals("environment"))
+			environment = new Vec3D(strs[1]);
+//		else if (strs[0].equals("Ball")){
+//			objs.add(new Ball(map));
+//		}else if (strs[0].equals("Plane")){
+//			objs.add(new Plane(map));
+//		}
 	}
-	public class Camera{
+	public static class Camera{
 		public Ray viewPoint;
 		public Vec3D screenCenter;
 		public Vec3D screenUp;
 		public Vec3D screenRight;
 		public float screenWidth;
 		public float screenHeight;
-		public int pictureWidth;
-		public int pictureHeight;
+		public int pictureWidth = 1280;
+		public int pictureHeight = 800;
 		public Camera(Map<String, String> map){
 			viewPoint = new Ray(new Vec3D(map.get("cameraPoint")),
 					new Vec3D(map.get("cameraDirection")),
@@ -58,14 +55,14 @@ public class Scene {
 			screenRight = Vec3D.cross(viewPoint.direction, screenUp).normalize();
 		}
 		public Ray emitRay(int x,int y) {
-			float _x = (float)x/pictureWidth-0.5f;
-			float _y = 0.5f-(float)y/pictureHeight;
+			float _x = ((float)x)/pictureWidth-0.5f;
+			float _y = 0.5f-((float)y)/pictureHeight;
 			Vec3D tmp = screenCenter;
 			tmp = Vec3D.add(tmp, 
-					Vec3D.mul(_y/screenUp.len(), screenUp)					
+					Vec3D.mul(_y*screenHeight/screenUp.len(), screenUp)					
 					);
 			tmp = Vec3D.add(tmp, 
-					Vec3D.mul(_x/screenRight.len(), screenRight)					
+					Vec3D.mul(_x*screenWidth/screenRight.len(), screenRight)					
 					);
 			return new Ray(viewPoint.start, Vec3D.minus(tmp, viewPoint.start), null);
 		}
@@ -75,7 +72,7 @@ public class Scene {
 		public abstract Ray getRay(Vec3D toPoint);
 	}
 	public class ParallelLight extends Light{
-		static final float inf = 1e10f;
+		static final float inf = 1e5f;
 		public Vec3D direction;
 		public ParallelLight(Map<String, String> map) {
 			color = new Vec3D(map.get("color"));
@@ -112,7 +109,7 @@ public class Scene {
 		@Override
 		public float intersect(Ray ray) {
 			float A = ray.direction.len2();
-			float B = Vec3D.dot(ray.direction,Vec3D.minus(ray.start, center));
+			float B = 2*Vec3D.dot(ray.direction,Vec3D.minus(ray.start, center));
 			float C = Vec3D.minus(ray.start, center).len2() - radius*radius;
 			float delta = B*B - 4*A*C;
 			if(delta<=0)
@@ -181,23 +178,23 @@ public class Scene {
 		}
 		return dis;
 	}
-	public Vec3D calcLight(Ray ray, Vec3D nStart, ObjectInScene obj) {
-		Vec3D ret = Vec3D.black;
-		Vec3D normal = obj.getNormal(nStart);
-		for(Light light:lights)
-		{
-			Ray lightRay = light.getRay(nStart);
-			ObjPacked op = new ObjPacked();
-			float dis = findObj(lightRay,op);
-			if(op.obj==obj && Vec3D.dis(lightRay.online(dis), nStart)<1e-5)
-			{
-//				ret = Vec3D.add(ret, 
-//						Vec3D.mul(k, light.color)
-//						
-//						);
-			}
-				
-		}
-		return null;
-	}
+//	public Vec3D calcLight(Ray ray, Vec3D nStart, ObjectInScene obj) {
+//		Vec3D ret = Vec3D.black;
+//		Vec3D normal = obj.getNormal(nStart);
+//		for(Light light:lights)
+//		{
+//			Ray lightRay = light.getRay(nStart);
+//			ObjPacked op = new ObjPacked();
+//			float dis = findObj(lightRay,op);
+//			if(op.obj==obj && Vec3D.dis(lightRay.online(dis), nStart)<1e-5)
+//			{
+////				ret = Vec3D.add(ret, 
+////						Vec3D.mul(k, light.color)
+////						
+////						);
+//			}
+//				
+//		}
+//		return null;
+//	}
 }

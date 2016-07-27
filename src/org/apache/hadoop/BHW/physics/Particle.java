@@ -28,7 +28,7 @@ public class Particle {
 		}
 		oldPos = new Vec3D(map.get("p"));
 		lambda = map.containsKey("l")?Float.parseFloat(map.get("l")):0f;
-		newPos =map.containsKey("n")?new Vec3D(map.get("n")): new Vec3D(0f, 0f, 0f);
+		newPos =map.containsKey("n")?new Vec3D(map.get("n")):oldPos.clone();
 		velocity = map.containsKey("v")?new Vec3D(map.get("v")):new Vec3D(0f, 0f, 0f);
 		force =  map.containsKey("f")?new Vec3D(map.get("f")):new Vec3D(0f, 0f, 0f);
 		deltaP = map.containsKey("d")?new Vec3D(map.get("d")): new Vec3D(0f, 0f, 0f);
@@ -38,16 +38,16 @@ public class Particle {
 	public String toString() {
 		StringBuilder sb = new StringBuilder("");
 		sb.append("p:"+oldPos.toString());
-		sb.append("\tn:"+newPos.toString());
-		sb.append("\tl:"+lambda);
-		sb.append("\tv:"+velocity.toString());
-		sb.append("\tf:"+force.toString());
-		sb.append("\td:"+deltaP.toString());
+		sb.append("\t\tn:"+newPos.toString());
+		sb.append("\t\tl:"+lambda);
+		sb.append("\t\tv:"+velocity.toString());
+		sb.append("\t\tf:"+force.toString());
+		sb.append("\t\td:"+deltaP.toString());
 		return sb.toString();
 	}
 	public Particle(Vec3D pos) {
 		this.oldPos = pos;
-		newPos = new Vec3D(0f, 0f, 0f);
+		newPos = oldPos.clone();
 		velocity = new Vec3D(0f, 0f, 0f);
 		force = new Vec3D(0f, 0f, 0f);
 		deltaP = new Vec3D(0f, 0f, 0f);

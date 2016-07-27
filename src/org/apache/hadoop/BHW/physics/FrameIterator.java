@@ -8,6 +8,9 @@ import javax.xml.transform.OutputKeys;
 import org.apache.hadoop.BHW.Bottle;
 import org.apache.hadoop.BHW.Vec3D;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -42,8 +45,11 @@ public class FrameIterator {
 				throws IOException, InterruptedException {
 			super.setup(context);
 			Configuration conf = context.getConfiguration();
-			bottle = new Bottle(conf.get(Frame.BottlePathTag));
-			bottle.run(Float.parseFloat(conf.get(Frame.BottleAccelerationTag)));			
+			FileSystem fs = FileSystem.get(conf);
+			FSDataInputStream dis = fs.open(new Path(conf.get(Frame.BottlePathTag)));
+			bottle = new Bottle(dis.readLine());
+			bottle.run(Float.parseFloat(conf.get(Frame.BottleAccelerationTag)));
+			dis.close();
 		}
 		@Override
 		protected void cleanup(Context context)

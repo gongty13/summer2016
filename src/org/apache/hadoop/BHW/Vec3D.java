@@ -4,7 +4,8 @@ import org.apache.hadoop.BHW.render.Scene;
 import org.apache.hadoop.BHW.render.Scene.ObjectInScene;
 
 public class Vec3D {
-	public static final Vec3D black = new Vec3D(0,0,0);	
+	public static final Vec3D black = new Vec3D(0,0,0);
+	public static final Vec3D white = new Vec3D(1,1,1);	
 	public float x,y,z;
 	public float len2(){
 		return x*x+y*y+z*z;
@@ -13,7 +14,7 @@ public class Vec3D {
 		return (float)Math.sqrt(x*x+y*y+z*z);
 	}
 	public Vec3D normalize() {
-		return Vec3D.mul(this.len(), this);
+		return Vec3D.div(this, this.len());
 	}
 	public Vec3D() {
 		x=y=z=0;
@@ -60,14 +61,29 @@ public class Vec3D {
 	public static Vec3D mul(float k, Vec3D a){
 		return new Vec3D(k*a.x,k*a.y,k*a.z);
 	}
+	public  Vec3D mul(float k){
+		x *= k;
+		y *= k;
+		z *= k;
+		return this;
+	}
 	public static Vec3D mul(Vec3D a, float k){
 		return new Vec3D(k*a.x,k*a.y,k*a.z);
 	}
 	public static Vec3D div( Vec3D a, float k){
 		return new Vec3D(a.x/k, a.y/k, a.z/k);
 	}
+	public Vec3D div( float k){
+		x /= k;
+		y /= k;
+		z /= k;
+		return this;
+	}
 	public static float dot(Vec3D a, Vec3D b){
 		return a.x*b.x+a.y*b.y+a.z*b.z;
+	}
+	public float dot(Vec3D a){
+		return x*a.x+y*a.y+z*a.z;
 	}
 	public static Vec3D cross(Vec3D a, Vec3D b){
 		return new Vec3D(a.y*b.z-a.z*b.y, 
@@ -85,6 +101,10 @@ public class Vec3D {
 			this.start = start;
 			this.direction = direction;
 			this.nowIn = nowIn;
+		}
+		@Override
+		public String toString() {
+			return "s:"+start.toString()+"\td:"+direction.toString();
 		}
 		public Vec3D online(float k){
 			return Vec3D.add(start, Vec3D.mul(k, direction));

@@ -56,8 +56,8 @@ public class Rendering {
 			{
 				ret = Vec3D.add(ret,Vec3D.mul(obj.refractive, rayTrace(reflect, weight*obj.refractive)));
 			}
-			if(ray.nowIn==null)
-				ret = Vec3D.add(ret, scene.calcLight(ray,nStart,obj));
+//			if(ray.nowIn==null)
+//				ret = Vec3D.add(ret, scene.calcLight(ray,nStart,obj));
 			float k = refractive==null?obj.reflect+obj.refractive:obj.reflect;
 			ret = Vec3D.add(ret, Vec3D.mul(k, rayTrace(reflect, weight*k)));
  			return ret;

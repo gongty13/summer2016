@@ -10,9 +10,9 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 
 public class ParticleSystem {
-	public static final Vec3D GRAVITY = new Vec3D(0f, -9.8f, 0f);
+	public static final Vec3D GRAVITY = new Vec3D(0f, 0f, -98f);
 	//Number of iterations to update pressure constraints (Macklin et al. used 4)
-	public static final int PRESSURE_ITERATIONS = 6;
+	public static final int PRESSURE_ITERATIONS = 3;
 	// deltaT is the timestep
 	public static float deltaT = 0.05f;
 	// H is radius of influence
@@ -114,15 +114,16 @@ public class ParticleSystem {
 		coeff += (H / (2 * rLen)) - 1;
 		return Vec3D.mul(r,coeff);
 	}
-//	public static Vec3D xsphViscosity(Particle p) {
-//		Vec3D visc = new Vec3D();
-//		ArrayList<Particle> neighbors = p.getNeighbors();
-//		for (Particle n : neighbors) {
-//			Vec3D velocityDiff = Vec3D(n.getVelocity().clone().sub(p.getVelocity().clone()));
-//			velocityDiff.mul(WPoly6(p.getNewPos(), n.getNewPos()));
-//		}
-//		return visc.mul(C);
-//	}
+	public static Vec3D xsphViscosity(Particle p) {
+		Vec3D visc = new Vec3D();
+		ArrayList<Particle> neighbors = p.getNeighbors();
+		for (Particle n : neighbors) {
+			Vec3D velocityDiff = Vec3D.minus(n.getVelocity(), p.getVelocity());
+			velocityDiff.mul(WPoly6(p.getNewPos(), n.getNewPos()));
+			visc.add(velocityDiff);
+		}
+		return visc.mul(C);
+	}
 	public static Vec3D vorticityForce(Particle p) {
 		Vec3D vorticity = vorticity(p);
 		if (vorticity.len() == 0) {
@@ -149,10 +150,11 @@ public class ParticleSystem {
 			pos = Vec3D.add(bottle.center, 
 					Vec3D.mul(Vec3D.minus(pos, bottle.center), bottle.radius/dis)
 					);
-			pos.z = p.getNewPos().z;
-			p.setNewPos(pos);
-			p.setVelocity(Vec3D.div(Vec3D.minus(pos, p.getOldPos()), deltaT));
-		}		
+		}
+		pos.z = p.getNewPos().z;
+		if(pos.z<0)
+			pos.z = 0;
+		p.setNewPos(pos);
 	}
 
 }

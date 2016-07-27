@@ -1,5 +1,6 @@
 package org.apache.hadoop.BHW.physics;
 
+import org.apache.hadoop.BHW.Bottle;
 import org.apache.hadoop.BHW.physics.FrameIterator.FrameIteratorMapper;
 import org.apache.hadoop.BHW.physics.FrameIterator.FrameIteratorReducer;
 import org.apache.hadoop.BHW.physics.FrameStart.FrameStartMapper;
@@ -34,20 +35,22 @@ public class Frame {
 		Job job = new Job(conf, "iter");
 		job.setJarByClass(Frame.class);
 		job.setMapperClass(FrameIteratorMapper.class);
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(Text.class);
 		job.setReducerClass(FrameIteratorReducer.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
 		FileInputFormat.addInputPath(job, new Path(inputPath));
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));
-		job.waitForCompletion(true);		
+		job.waitForCompletion(true);
 	}
-	public static void run(String bottlePath, float bottleAcceleration, String in, String out)throws Exception
+	public static void run(Configuration conf, String bottlePath, float bottleAcceleration, String in, String out)throws Exception
 	{
-		Configuration conf = new Configuration();
 		conf.set(BottlePathTag, bottlePath);
 		conf.setFloat(BottleAccelerationTag, bottleAcceleration);
 		runInit(in, out+"_"+0, conf);
 		for(int i=0;i<ParticleSystem.PRESSURE_ITERATIONS;++i){
+			conf.setBoolean("final", i+1==ParticleSystem.PRESSURE_ITERATIONS);
 			runIterator(out+"_"+i, out+"_"+(i+1), conf);
 		}
 		FileSystem fs = FileSystem.get(conf);
