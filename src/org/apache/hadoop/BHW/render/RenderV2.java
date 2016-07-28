@@ -7,7 +7,8 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.math3.analysis.function.Abs;
+import org.apache.hadoop.BHW.Bottle;
+import org.apache.hadoop.BHW.Generator;
 import org.apache.hadoop.BHW.Vec3D;
 import org.apache.hadoop.BHW.Vec3D.Ray;
 import org.apache.hadoop.BHW.physics.Particle;
@@ -81,8 +82,7 @@ public class RenderV2 {
 	public static class RenderV2reducer extends Reducer<Text, FloatWritable, Text, FloatWritable> {
 		private FloatWritable outVal = new FloatWritable();
 		@Override
-		protected void reduce(Text key, Iterable<FloatWritable> value,Context context)	throws IOException, InterruptedException {
-			// TODO Auto-generated method stub
+		protected void reduce(Text key, Iterable<FloatWritable> value,Context context)throws IOException, InterruptedException {
 			float min = Float.MAX_VALUE;
 			for(FloatWritable val:value){
 				if(min>val.get())
@@ -97,11 +97,11 @@ public class RenderV2 {
 		public Vec3D n;
 		public float dis;
 		public View() {
-			// TODO Auto-generated constructor stub
 		}
 	}
 	public static final float particleR= 0.6f;
-	public static final Vec3D particleColor = new Vec3D(240f/255,1,1);
+	public static final Vec3D particleColor = new Vec3D(0,0,1);
+	public static final Vec3D bottleColor = new Vec3D(0.2f, 0.2f, 0.2f);
 	public static float point2line(Ray ray, Vec3D center){
 		float A = ray.direction.len2();
 		float B = 2*Vec3D.dot(ray.direction,Vec3D.minus(ray.start, center));
@@ -148,8 +148,7 @@ public class RenderV2 {
 			}
 		return ret;
 	}
-	public static void getPic(Configuration conf, String reduceResult, String out) throws IOException
-	{
+	public static void getPic(Configuration conf, String reduceResult, String out) throws IOException{
 		Scene scene = new Scene();
 		FileSystem fs = FileSystem.get(conf);
 		FSDataInputStream dis = fs.open(new Path(conf.get("scenePath")));
@@ -159,6 +158,9 @@ public class RenderV2 {
 				break;
 			scene.parse(line);
 		}
+		dis.close();
+		dis = fs.open(new Path(Generator.PREFIX+"/bottle.txt"));
+		Bottle bottle = new Bottle(dis.readLine());
 		dis.close();
 		Camera camera = scene.camera;
 		dis = fs.open(new Path(reduceResult));
@@ -183,10 +185,30 @@ public class RenderV2 {
 		for(int i=0;i<camera.pictureHeight;++i)
 			for(int j=0;j<camera.pictureWidth;++j)
 			{
-				if(view[i][j]!=null)
-					img2.setRGB(j, i, calcRGB(Vec3D.white));
-				else{
-					img.setRGB(j, i, calcRGB(Vec3D.black));
+				Vec3D color = Vec3D.black.clone();//scene.environment.clone();
+				Ray ray = camera.emitRay(j, i);
+				{
+					float A = ray.direction.x*ray.direction.x + ray.direction.y*ray.direction.y;
+					float B = 2*(ray.direction.x*(ray.start.x-bottle.center.x)+ray.direction.y*(ray.start.y-bottle.center.y));
+					float C = (ray.start.x-bottle.center.x)* (ray.start.x-bottle.center.x)+
+							(ray.start.y-bottle.center.y)* (ray.start.y-bottle.center.y)+
+							- bottle.radius*bottle.radius;
+					float delta = B*B - 4*A*C;
+					if(delta>0)
+					{
+						delta = (float)Math.sqrt(delta);
+						Vec3D i1 = new Vec3D(ray.start);
+						Vec3D i2 = new Vec3D(ray.start);
+						i1.add(Vec3D.mul(ray.direction, (-B+delta)/(2*A)));
+						i2.add(Vec3D.mul(ray.direction, (-B-delta)/(2*A)));
+						if (i1.z<75 && i1.z>0)
+							color.add(bottleColor);
+						if (i2.z<75 && i2.z>0)
+							color.add(bottleColor);
+					}
+				}
+				if(view[i][j]==null){
+					img.setRGB(j, i, calcRGB(color));
 					continue;
 				}
 				int num=0;
@@ -201,9 +223,7 @@ public class RenderV2 {
 									list.add(Vec3D.mul(camera.emitRay(j+l, i+k).direction,view[i+k][j+l].dis));
 							}
 				Vec3D normal = getNormal(mid, list);
-				if(normal!=null){					
-					Ray ray = camera.emitRay(j, i);					
-					Vec3D color = Vec3D.black.clone();//scene.environment.clone();
+				if(normal!=null){
 					Light light = scene.lights.get(0);
 					Vec3D d = Vec3D.mul(light.getRay(mid).direction,-1).normalize();
 					float cosVal = normal.normalize().dot(d);
@@ -214,13 +234,12 @@ public class RenderV2 {
 				}
 				else{
 //					img.setRGB(j, i, calcRGB(scene.environment));
-					img.setRGB(j, i, calcRGB(Vec3D.black));
+					img.setRGB(j, i, calcRGB(color));
 				}
 //				System.out.println(calcRGB(scene.environment)+" ??? "+scene.environment.toString());
 //				System.out.println(""+j+","+i+":"+img.getRGB(i, j));
 				
 			}
 		ImageIO.write(img, "JPEG", new File(out));
-		ImageIO.write(img2, "JPEG", new File("./2.JPEG"));
 	}
 }

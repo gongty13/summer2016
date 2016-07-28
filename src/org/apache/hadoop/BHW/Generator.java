@@ -113,14 +113,6 @@ public class Generator {
 		updateBottle(fs, bottle);
 		initParticle(radius, height, fs);
 
-		for(int i=0;i<time/ParticleSystem.deltaT;++i){
-			float t = i*ParticleSystem.deltaT;
-			float now = t;
-			render(conf, PREFIX+"/"+now, PREFIX+"/"+now+"_render");		
-			RenderV2.getPic(conf, PREFIX+"/"+now+"_render/"+SUFFIX,
-					"./"+now+".JPEG");
-			System.out.println("end");
-		}
 		render(conf, PREFIX+"/"+0f, PREFIX+"/"+0f+"_render");
 		RenderV2.getPic(conf, PREFIX+"/"+0f+"_render/"+SUFFIX, "./"+0f+".JPEG");
 //		/*
@@ -132,17 +124,17 @@ public class Generator {
 			else if (t<t1)
 				nowAcceleration = -deceleration;
 			Frame.run(conf, PREFIX+"/bottle.txt", nowAcceleration, PREFIX+"/"+t, PREFIX+"/"+((i+1)*ParticleSystem.deltaT));
+			bottle.run(nowAcceleration);
+			updateBottle(fs, bottle);
 			render(conf, PREFIX+"/"+((i+1)*ParticleSystem.deltaT), PREFIX+"/"+((i+1)*ParticleSystem.deltaT)+"_render");
 			RenderV2.getPic(
 					conf, 
 					PREFIX+"/"+((i+1)*ParticleSystem.deltaT)+"_render/"+SUFFIX,
 					"./"+((i+1)*ParticleSystem.deltaT)+".JPEG");
-			bottle.run(nowAcceleration);
-			updateBottle(fs, bottle);
 		}//*/
+		GIFGenerator.run(time, "./final.gif");
 	}
-	public static void main(String[] args) throws Exception
-	{
+	public static void main(String[] args) throws Exception{
 		
 		CommandLineParser parser = new BasicParser();
 		Options opt = new Options();

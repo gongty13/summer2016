@@ -21,7 +21,7 @@ public class GIFGenerator {
 			e.start(newPic);  
 			BufferedImage src[] = new BufferedImage[pic.length];  
 			for (int i = 0; i < src.length; i++) {  
-				e.setDelay(200); //设置播放的延迟时间  
+				e.setDelay((int)(1000*ParticleSystem.deltaT)); //设置播放的延迟时间  
 				src[i] = ImageIO.read(new File(pic[i])); // 读入需要播放的jpg文件  
 				e.addFrame(src[i]);  //添加到帧中  
 			}  
