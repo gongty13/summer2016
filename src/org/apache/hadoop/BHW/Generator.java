@@ -5,6 +5,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+
+import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -26,7 +30,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-public class Generator {
+public class Generator extends Thread implements Runnable{
 	public static final String PREFIX = "/user/hadoop/BHW";
 	public static final String SUFFIX = "part-r-00000";
 	public static FileSystem init(Configuration conf) throws IOException{
@@ -115,9 +119,19 @@ public class Generator {
 
 		render(conf, PREFIX+"/"+0f, PREFIX+"/"+0f+"_render");
 		RenderV2.getPic(conf, PREFIX+"/"+0f+"_render/"+SUFFIX, "./"+0f+".JPEG");
-//		/*
+		
+		
+		JProgressBar progressBar = new JProgressBar();
+		progressBar.setMinimum(0);
+		progressBar.setMaximum((int)(time/ParticleSystem.deltaT)-1);
+		progressBar.setValue(0);
+		java.awt.Frame dialog = new java.awt.Frame("running");
+		dialog.add(progressBar);
+		dialog.pack();
+		dialog.setVisible(true);
+//		
 		for(int i=0;i<time/ParticleSystem.deltaT;++i){
-			float t = i*ParticleSystem.deltaT;
+			/*float t = i*ParticleSystem.deltaT;
 			float nowAcceleration = 0;
 			if(t<t0)
 				nowAcceleration = acceleration;
@@ -131,7 +145,21 @@ public class Generator {
 					conf, 
 					PREFIX+"/"+((i+1)*ParticleSystem.deltaT)+"_render/"+SUFFIX,
 					"./"+((i+1)*ParticleSystem.deltaT)+".JPEG");
-		}//*/
+			*/
+			//gui.setVisible(false);
+			progressBar.setValue(i);
+			progressBar.paintImmediately(0, 0, 1000, 1000);
+			
+			//dialog.setVisible(true);
+			try {  
+                Thread.sleep(100);  
+            } catch (InterruptedException e) {  
+                // TODO Auto-generated catch block  
+                e.printStackTrace();  
+            }  
+			//System.out.println(i);
+		}//
+		dialog.dispose();
 		GIFGenerator.run(time, "./final.gif");
 	}
 	public static void main(String[] args) throws Exception{
