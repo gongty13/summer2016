@@ -131,7 +131,7 @@ public class Generator extends Thread implements Runnable{
 		dialog.setVisible(true);
 //		
 		for(int i=0;i<time/ParticleSystem.deltaT;++i){
-			/*float t = i*ParticleSystem.deltaT;
+			float t = i*ParticleSystem.deltaT;
 			float nowAcceleration = 0;
 			if(t<t0)
 				nowAcceleration = acceleration;
@@ -145,20 +145,12 @@ public class Generator extends Thread implements Runnable{
 					conf, 
 					PREFIX+"/"+((i+1)*ParticleSystem.deltaT)+"_render/"+SUFFIX,
 					"./"+((i+1)*ParticleSystem.deltaT)+".JPEG");
-			*/
+//			
 			//gui.setVisible(false);
 			progressBar.setValue(i);
-			progressBar.paintImmediately(0, 0, 1000, 1000);
-			
-			//dialog.setVisible(true);
-			try {  
-                Thread.sleep(100);  
-            } catch (InterruptedException e) {  
-                // TODO Auto-generated catch block  
-                e.printStackTrace();  
-            }  
-			//System.out.println(i);
-		}//
+		}
+//			dialog.setVisible(true);
+		
 		dialog.dispose();
 		GIFGenerator.run(time, "./final.gif");
 	}

@@ -78,7 +78,7 @@ public class GUI{
 			}
 		});
 		gui.setSize(500, 200);
-		gui.setVisible(true);
+		gui .setVisible(true);
 		gui.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e)
 			{

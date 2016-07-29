@@ -199,11 +199,11 @@ public class RenderV2 {
 						delta = (float)Math.sqrt(delta);
 						Vec3D i1 = new Vec3D(ray.start);
 						Vec3D i2 = new Vec3D(ray.start);
-						i1.add(Vec3D.mul(ray.direction, (-B+delta)/(2*A)));
-						i2.add(Vec3D.mul(ray.direction, (-B-delta)/(2*A)));
+						i1.add(Vec3D.mul(ray.direction, (-B-delta)/(2*A)));
+						i2.add(Vec3D.mul(ray.direction, (-B+delta)/(2*A)));
 						if (i1.z<75 && i1.z>0)
-							color.add(bottleColor);
-						if (i2.z<75 && i2.z>0)
+							color.add(Vec3D.mul(bottleColor,2));
+						else if (i2.z<75 && i2.z>0)
 							color.add(bottleColor);
 					}
 				}
